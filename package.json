@@ -1,17 +1,18 @@
 {
   "name": "url-web-preview",
   "displayName": "小小说",
-  "description": "输入网址或书名，在 VS Code 中搜索并阅读小说。",
-  "version": "0.0.29",
+  "description": "输入地址或书名，在 VS Code 中搜索并阅读小说。",
+  "version": "0.0.38",
   "publisher": "xiaoxiaoshuo",
+  "icon": "media/icon.png",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yao-Hub/url-web-preview.git"
+    "url": "https://github.com/yao-Hub/xiaoxiaoshuo.git"
   },
-  "homepage": "https://github.com/yao-Hub/url-web-preview#readme",
+  "homepage": "https://github.com/yao-Hub/xiaoxiaoshuo#readme",
   "bugs": {
-    "url": "https://github.com/yao-Hub/url-web-preview/issues"
+    "url": "https://github.com/yao-Hub/xiaoxiaoshuo/issues"
   },
   "engines": {
     "vscode": "^1.90.0"
@@ -20,10 +21,6 @@
     "Other"
   ],
   "main": "./extension.js",
-  "activationEvents": [
-    "onCommand:urlWebPreview.open",
-    "onView:urlWebPreview.readerView"
-  ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
@@ -39,14 +36,15 @@
         {
           "id": "urlWebPreview.readerView",
           "name": "小小说",
-          "type": "webview"
+          "type": "webview",
+          "icon": "media/book.svg"
         }
       ]
     },
     "commands": [
       {
         "command": "urlWebPreview.open",
-        "title": "小小说: 打开网址或搜索书名",
+        "title": "小小说: 打开地址或搜索书名",
         "category": "小小说"
       }
     ],
