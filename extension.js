@@ -12,7 +12,7 @@ function activate(context) {
         retainContextWhenHidden: true
       }
     }),
-    vscode.commands.registerCommand('urlWebPreview.open', async () => {
+    vscode.commands.registerCommand('xiaoxiaoshuo.open', async () => {
       await sidebarProvider.openPrompt();
     })
   );

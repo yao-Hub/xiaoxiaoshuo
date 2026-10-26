@@ -1,8 +1,8 @@
 {
-  "name": "url-web-preview",
+  "name": "xiaoxiaoshuo",
   "displayName": "小小说",
   "description": "输入地址或书名，在 VS Code 中搜索并阅读小说。",
-  "version": "0.0.50",
+  "version": "0.0.1",
   "publisher": "xiaoxiaoshuo",
   "icon": "media/icon.png",
   "license": "MIT",
@@ -25,16 +25,16 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "urlWebPreviewSidebar",
+          "id": "xiaoxiaoshuoSidebar",
           "title": "小小说",
           "icon": "media/book.svg"
         }
       ]
     },
     "views": {
-      "urlWebPreviewSidebar": [
+      "xiaoxiaoshuoSidebar": [
         {
-          "id": "urlWebPreview.readerView",
+          "id": "xiaoxiaoshuo.readerView",
           "name": "小小说",
           "type": "webview",
           "icon": "media/book.svg"
@@ -43,14 +43,14 @@
     },
     "commands": [
       {
-        "command": "urlWebPreview.open",
+        "command": "xiaoxiaoshuo.open",
         "title": "小小说: 打开地址或搜索书名",
         "category": "小小说"
       }
     ],
     "keybindings": [
       {
-        "command": "urlWebPreview.open",
+        "command": "xiaoxiaoshuo.open",
         "key": "ctrl+alt+p",
         "mac": "cmd+alt+p",
         "when": "editorTextFocus"
