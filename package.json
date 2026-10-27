@@ -2,7 +2,7 @@
   "name": "xiaoxiaoshuo",
   "displayName": "小小小说",
   "description": "输入地址或书名，在 VS Code 中搜索并阅读小说。",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "publisher": "xiaoxiaoshuo",
   "icon": "media/icon.png",
   "license": "MIT",
