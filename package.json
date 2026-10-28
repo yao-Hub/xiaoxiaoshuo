@@ -58,12 +58,21 @@
     ]
   },
   "scripts": {
-    "lint": "node scripts/check-syntax.js",
-    "test": "npm run lint",
+    "lint": "node scripts/check-syntax.js && eslint .",
+    "test": "node --test scripts/domain.test.js && npm run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run test && npm run format:check",
     "package:vsix": "npx @vscode/vsce package",
     "publish:marketplace": "npx @vscode/vsce publish"
   },
   "dependencies": {
     "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10"
   }
 }
