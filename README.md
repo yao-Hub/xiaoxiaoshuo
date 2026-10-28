@@ -1,5 +1,13 @@
 # 小小小说
 
+代码检查：
+
+```powershell
+npm run lint
+npm run format:check
+npm run check
+```
+
 在 VS Code 中按地址阅读小说，也可以输入书名，在已适配的网站中搜索。
 
 ## 使用方式
