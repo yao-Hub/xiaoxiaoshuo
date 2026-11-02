@@ -6,4 +6,5 @@ eslint.config.mjs
 package-lock.json
 PUBLISH.md
 scripts/**
+test/**
 *.vsix

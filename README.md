@@ -10,6 +10,19 @@ npm run check
 
 在 VS Code 中按地址阅读小说，也可以输入书名，在已适配的网站中搜索。
 
+## 项目结构
+
+```text
+src/
+├─ extension.js          # 扩展入口与命令注册
+├─ core/                 # HTTP、HTML、URL 等基础能力
+├─ content/              # 页面读取、EPUB 解析与来源适配
+├─ search/               # App/网页搜索、签名与来源注册
+├─ sidebar/              # 侧栏编排、缓存、历史和导航状态
+└─ ui/                   # HTML 渲染与 Webview 客户端
+test/                    # 自动化测试
+```
+
 ## 使用方式
 
 1. 打开 VS Code 左侧的“小小小说”视图。
