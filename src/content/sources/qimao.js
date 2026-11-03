@@ -6,7 +6,7 @@ const {
 } = require('../../core/http');
 const {
   extractAnchors,
-  extractChapterContent,
+  cleanNovelText,
   extractTitle,
   htmlToText,
   normalizeText
@@ -44,6 +44,25 @@ function getChapterTitle(html, fallbackUrl) {
     /<h2\b[^>]*class=["'][^"']*\bchapter-title\b[^"']*["'][^>]*>([\s\S]*?)<\/h2>/i
   );
   return match ? normalizeText(htmlToText(match[1])) : extractTitle(html, fallbackUrl);
+}
+
+function extractQimaoChapterContent(html) {
+  const candidates = [];
+  const articlePatterns = [
+    /<div\b[^>]*class=["'][^"']*\bchapter-detail-article\b[^"']*["'][^>]*>[\s\S]*?<div\b[^>]*class=["'][^"']*\barticle\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi,
+    /<div\b[^>]*class=["'][^"']*\barticle\b[^"']*["'][^>]*>([\s\S]*?)<\/div>/gi
+  ];
+
+  for (const pattern of articlePatterns) {
+    for (const match of String(html).matchAll(pattern)) {
+      const content = cleanNovelText(htmlToText(match[1]));
+      if (content) {
+        candidates.push(content);
+      }
+    }
+  }
+
+  return candidates.sort((a, b) => b.length - a.length)[0] || '';
 }
 
 async function loadBook(bookId, url, options = {}) {
@@ -85,10 +104,7 @@ async function loadChapter(bookId, url, options = {}) {
     ...options,
     headers: createBrowserHeaders()
   });
-  const content = extractChapterContent(html);
-  if (!content) {
-    throw new Error('七猫没有识别到章节正文。');
-  }
+  const content = extractQimaoChapterContent(html);
 
   const anchors = extractAnchors(html, finalUrl);
   const prev = anchors.find((item) => /^(上一章|上一页|上一篇)$/i.test(item.text));
@@ -102,6 +118,8 @@ async function loadChapter(bookId, url, options = {}) {
     url: finalUrl,
     title: getChapterTitle(html, finalUrl),
     content,
+    contentUnavailable: !content,
+    contentUnavailableReason: content ? '' : '该章节需要七猫会员，当前来源暂不提供正文。',
     prevUrl: prev ? prev.url : '',
     nextUrl: next ? next.url : '',
     catalogUrl: resolvedBookId ? `https://www.qimao.com/shuku/${resolvedBookId}/` : ''
@@ -123,6 +141,7 @@ async function load(url, options = {}) {
 }
 
 module.exports = {
+  extractQimaoChapterContent,
   load,
   match
 };

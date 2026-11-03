@@ -434,13 +434,18 @@ function renderChapterBodyWithToc(page) {
     .split(/\n{2,}/)
     .map((line) => `<p>${escapeHtml(line).replace(/\n/g, '<br>')}</p>`)
     .join('');
+  const content = page.contentUnavailable
+    ? `<p class="content-unavailable">${escapeHtml(
+        page.contentUnavailableReason || '当前内容暂不可用。'
+      )}</p>`
+    : paragraphs;
 
   return `
     <article class="chapter-view">
       <h1>${escapeHtml(page.title || '阅读')}</h1>
       <p class="source">${escapeHtml(page.url || '')}</p>
       ${renderChapterNavigation(page, 'top')}
-      <div class="content">${paragraphs}</div>
+      <div class="content">${content}</div>
       ${renderChapterNavigation(page, 'bottom')}
       ${renderTocBody(page)}
     </article>`;

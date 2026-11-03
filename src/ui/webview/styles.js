@@ -258,6 +258,12 @@ const WEBVIEW_STYLES = String.raw`
       text-indent: 2em;
     }
 
+    .content .content-unavailable {
+      color: var(--vscode-descriptionForeground);
+      font-style: italic;
+      text-indent: 0;
+    }
+
     .chapter-nav {
       display: flex;
       gap: 10px;

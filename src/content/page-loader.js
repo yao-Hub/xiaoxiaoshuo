@@ -6,6 +6,8 @@ const alicesw = require('./sources/alicesw');
 const l3zc = require('./sources/l3zc');
 const xbookcn = require('./sources/xbookcn');
 const qimao = require('./sources/qimao');
+const fanqie = require('./sources/fanqie');
+const shuqi = require('./sources/shuqi');
 const bqg = require('./sources/bqg');
 const generic = require('./sources/generic');
 
@@ -22,6 +24,8 @@ const PAGE_SOURCES = [
   { source: 'l3zc', match: l3zc.match, load: l3zc.load },
   { source: 'xbookcn', match: xbookcn.match, load: xbookcn.load },
   { source: 'qimao', match: qimao.match, load: qimao.load },
+  { source: 'fanqie', match: fanqie.match, load: fanqie.load },
+  { source: 'shuqi', match: shuqi.match, load: shuqi.load },
   { source: 'bqg', match: bqg.match, load: bqg.load }
 ];
 
