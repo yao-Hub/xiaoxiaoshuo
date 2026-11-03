@@ -61,6 +61,13 @@ const CLIENT_SCRIPT = String.raw`
       });
     });
 
+    address.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        toolbar.requestSubmit();
+      }
+    });
+
     back.addEventListener('click', () => {
       vscode.postMessage({ command: 'back' });
     });

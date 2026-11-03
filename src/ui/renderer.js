@@ -521,14 +521,26 @@ function renderShell(webview, page) {
 <body class="${bodyClass}">
   <div class="app">
     <form class="toolbar" id="toolbar">
-      <button class="button" id="back" type="button" ${backDisabled}>返回</button>
-      <button class="button" id="forward" type="button" ${forwardDisabled}>前进</button>
+      <button class="button icon-button" id="back" type="button" title="返回" aria-label="返回" ${backDisabled}>
+        <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M19 12H5m6-6-6 6 6 6"></path>
+        </svg>
+      </button>
+      <button class="button icon-button" id="forward" type="button" title="前进" aria-label="前进" ${forwardDisabled}>
+        <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M5 12h14m-6-6 6 6-6 6"></path>
+        </svg>
+      </button>
       <div class="address-group" id="addressGroup">
         ${searchModeFilter}
         <input class="address" id="address" type="url" aria-label="地址" spellcheck="false">
       </div>
-      <button class="button" id="load" type="submit" title="读取">读取</button>
-      <button class="button" id="refresh" type="button" title="刷新当前页面" ${refreshDisabled}>刷新</button>
+      <button class="button icon-button" id="refresh" type="button" title="刷新当前页面" aria-label="刷新当前页面" ${refreshDisabled}>
+        <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+          <path d="M21 3v6h-6"></path>
+        </svg>
+      </button>
       <button class="button" id="external" type="button" title="在浏览器打开">打开</button>
       <button class="button" id="historyToggle" type="button" title="历史记录" aria-expanded="false">历史</button>
     </form>

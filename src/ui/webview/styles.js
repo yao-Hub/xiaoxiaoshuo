@@ -33,7 +33,7 @@ const WEBVIEW_STYLES = String.raw`
 
     .toolbar {
       display: grid;
-      grid-template-columns: auto auto minmax(120px, 1fr) auto auto auto auto;
+      grid-template-columns: auto auto minmax(120px, 1fr) auto auto auto;
       gap: 8px;
       align-items: center;
       padding: 8px;
@@ -109,6 +109,24 @@ const WEBVIEW_STYLES = String.raw`
     .button:focus-visible {
       outline: 1px solid var(--vscode-focusBorder);
       outline-offset: 2px;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      padding: 0;
+    }
+
+    .toolbar-icon {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .search-suggestions {
@@ -675,7 +693,7 @@ const WEBVIEW_STYLES = String.raw`
 
     @media (max-width: 720px) {
       .toolbar {
-        grid-template-columns: auto auto minmax(100px, 1fr) auto auto auto auto;
+        grid-template-columns: auto auto minmax(100px, 1fr) auto auto auto;
       }
 
       .chapter-view,
@@ -700,7 +718,7 @@ const WEBVIEW_STYLES = String.raw`
         grid-template-columns: repeat(4, minmax(0, 1fr));
         grid-template-areas:
           "back forward address address"
-          "load refresh external history";
+          "refresh external history history";
       }
 
       #back {
@@ -713,10 +731,6 @@ const WEBVIEW_STYLES = String.raw`
 
       #addressGroup {
         grid-area: address;
-      }
-
-      #load {
-        grid-area: load;
       }
 
       #refresh {

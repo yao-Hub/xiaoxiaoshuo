@@ -3,6 +3,7 @@ const test = require('node:test');
 const { getSearchTitleScore, normalizeSearchText } = require('../src/search/service');
 const { renderHomeHtml, renderPageHtml } = require('../src/ui/renderer');
 const { SEARCH_SOURCES } = require('../src/search/registry');
+const { DEFAULT_SEARCH_MODE, normalizeSearchMode } = require('../src/search/modes');
 const { HistoryStore } = require('../src/sidebar/stores/history-store');
 const { NavigationStore } = require('../src/sidebar/stores/navigation-store');
 const { isLikelyUrl, normalizeUrl, resolveUrl } = require('../src/core/url');
@@ -90,8 +91,19 @@ test('webview renderer injects isolated styles and client state', () => {
   const html = renderHomeHtml({}, '');
   assert.match(html, /<style>/);
   assert.match(html, /class="toolbar"/);
+  assert.match(html, /id="back"[^>]*aria-label="返回"/);
+  assert.match(html, /id="forward"[^>]*aria-label="前进"/);
+  assert.match(html, /id="refresh"[^>]*aria-label="刷新当前页面"/);
+  assert.doesNotMatch(html, /id="load"/);
+  assert.match(html, /toolbar\.requestSubmit\(\)/);
   assert.match(html, /const state =/);
   assert.doesNotMatch(html, /\$\{safeState\}/);
+});
+
+test('search source defaults to web', () => {
+  assert.equal(DEFAULT_SEARCH_MODE, 'web');
+  assert.equal(normalizeSearchMode(undefined), 'web');
+  assert.match(renderHomeHtml({}, ''), /<option value="web"[^>]*selected>网页<\/option>/);
 });
 
 test('webview renderer shows a neutral message for unavailable content', () => {
