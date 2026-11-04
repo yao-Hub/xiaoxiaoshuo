@@ -1,4 +1,3 @@
-const { SEARCH_MODES, normalizeSearchMode } = require('./modes');
 const { SEARCH_SOURCES } = require('./registry');
 
 function getSourceLabel(source) {
@@ -24,22 +23,19 @@ async function searchBooks(input, options = {}) {
   }
   throwIfAborted(options.signal);
 
-  const searchMode = normalizeSearchMode(options.mode);
-  const activeSources = SEARCH_SOURCES.filter((provider) =>
-    getSourceSearchMode(provider, searchMode)
-  );
+  const activeSources = SEARCH_SOURCES;
   let completed = 0;
   const groups = new Array(activeSources.length);
   options.onProgress?.({
     fraction: 0.05,
-    label: `正在搜索${getSearchModeLabel(searchMode)}来源`
+    label: `正在搜索全部来源`
   });
   await Promise.all(
     activeSources.map(async (provider, index) => {
       let group;
       try {
         throwIfAborted(options.signal);
-        const mode = getSourceSearchMode(provider, searchMode);
+        const mode = provider.searchModes[0];
         const items = await mode.search(query, { signal: options.signal });
         group = {
           source: provider.source,
@@ -60,14 +56,6 @@ async function searchBooks(input, options = {}) {
       } finally {
         completed += 1;
         groups[index] = group;
-        if (!options.signal || !options.signal.aborted) {
-          const page = createSearchPage(query, activeSources, groups, completed, searchMode);
-          try {
-            options.onPartial?.(page);
-          } catch {
-            // A rendering failure should not interrupt the remaining searches.
-          }
-        }
         options.onProgress?.({
           fraction: 0.1 + (completed / activeSources.length) * 0.85,
           label: `已完成 ${completed}/${activeSources.length} 个网站`
@@ -77,15 +65,7 @@ async function searchBooks(input, options = {}) {
   );
 
   throwIfAborted(options.signal);
-  return createSearchPage(query, activeSources, groups, completed, searchMode);
-}
-
-function getSourceSearchMode(provider, modeKey) {
-  return provider.searchModes.find((mode) => mode.key === modeKey);
-}
-
-function getSearchModeLabel(modeKey) {
-  return SEARCH_MODES.find((mode) => mode.key === modeKey)?.label || modeKey;
+  return createSearchPage(query, activeSources, groups);
 }
 
 function throwIfAborted(signal) {
@@ -96,18 +76,9 @@ function throwIfAborted(signal) {
   }
 }
 
-function createSearchPage(query, sources, sourceGroups, completedCount, searchMode) {
-  const groups = sources
-    .map(
-      (source, index) =>
-        sourceGroups[index] || {
-          source: source.source,
-          label: getSourceLabel(source),
-          items: [],
-          error: '',
-          searching: true
-        }
-    )
+function createSearchPage(query, sources, sourceGroups) {
+  const groups = sourceGroups
+    .slice(0, sources.length)
     .sort((left, right) => compareSearchGroups(left, right, query));
 
   return {
@@ -117,10 +88,12 @@ function createSearchPage(query, sources, sourceGroups, completedCount, searchMo
     query,
     title: `搜索：${query}`,
     groups,
-    searchMode,
-    completedCount,
-    totalSources: sources.length,
-    searching: completedCount < sources.length
+    items: groups
+      .flatMap((group) => group.items)
+      .sort(
+        (left, right) =>
+          getSearchTitleScore(right.text, query) - getSearchTitleScore(left.text, query)
+      )
   };
 }
 
@@ -144,11 +117,8 @@ function getSearchGroupRank(group) {
   if (Array.isArray(group.items) && group.items.length) {
     return 0;
   }
-  if (group.searching) {
-    return 2;
-  }
   if (group.error) {
-    return 3;
+    return 2;
   }
   return 1;
 }

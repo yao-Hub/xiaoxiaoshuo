@@ -32,8 +32,8 @@ const WEBVIEW_STYLES = String.raw`
     }
 
     .toolbar {
-      display: grid;
-      grid-template-columns: auto auto minmax(120px, 1fr) auto auto auto;
+      display: flex;
+      flex-wrap: nowrap;
       gap: 8px;
       align-items: center;
       padding: 8px;
@@ -43,6 +43,7 @@ const WEBVIEW_STYLES = String.raw`
 
     .address-group {
       display: flex;
+      flex: 1;
       gap: 6px;
       align-items: center;
       min-width: 0;
@@ -62,29 +63,12 @@ const WEBVIEW_STYLES = String.raw`
       font-family: var(--vscode-font-family);
     }
 
-    .search-mode-filter {
-      flex: none;
-      width: 84px;
-      height: 30px;
-      padding: 0 6px;
-      color: var(--vscode-dropdown-foreground);
-      background: var(--vscode-dropdown-background);
-      border: 1px solid var(--vscode-dropdown-border, var(--border));
-      border-radius: 4px;
-      outline: none;
-      font: inherit;
-      cursor: pointer;
-    }
-
-    .search-mode-filter:focus {
-      border-color: var(--vscode-focusBorder);
-    }
-
     .address:focus {
       border-color: var(--vscode-focusBorder);
     }
 
     .button {
+      flex: 0 0 auto;
       min-width: 34px;
       height: 30px;
       padding: 0 10px;
@@ -299,20 +283,6 @@ const WEBVIEW_STYLES = String.raw`
       color: var(--muted);
     }
 
-    .search-live-progress {
-      height: 4px;
-      margin: -12px 0 22px;
-      overflow: hidden;
-      background: color-mix(in srgb, var(--vscode-progressBar-background) 18%, transparent);
-      border-radius: 999px;
-    }
-
-    .search-live-progress-bar {
-      height: 100%;
-      background: var(--vscode-progressBar-background);
-      transition: width 180ms ease-out;
-    }
-
     .search-alert {
       margin: -10px 0 22px;
       padding: 10px 12px;
@@ -323,55 +293,14 @@ const WEBVIEW_STYLES = String.raw`
       line-height: 1.5;
     }
 
-    .search-empty.searching {
-      color: var(--link);
-    }
-
-    .search-group.is-searching {
-      border-style: dashed;
-    }
-
-    .search-group {
+    .search-results-flat {
       margin-top: 22px;
       border: 1px solid var(--border);
       border-radius: 6px;
       overflow: hidden;
     }
 
-    .search-group-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 10px 12px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .search-group-head h2 {
-      margin: 0;
-      overflow: hidden;
-      font-size: 1rem;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .search-count {
-      flex: none;
-      min-width: 24px;
-      padding: 1px 7px;
-      color: var(--muted);
-      text-align: center;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      font-size: 0.8rem;
-    }
-
     .search-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: center;
       padding: 8px 10px;
       border-bottom: 1px solid var(--border);
     }
@@ -381,6 +310,7 @@ const WEBVIEW_STYLES = String.raw`
     }
 
     .search-link {
+      width: 100%;
       min-width: 0;
       padding: 4px 2px;
       color: var(--link);
@@ -389,6 +319,10 @@ const WEBVIEW_STYLES = String.raw`
       text-align: left;
       cursor: pointer;
       font: inherit;
+    }
+
+    .search-link:hover {
+      background: var(--vscode-list-hoverBackground);
     }
 
     .search-title,
@@ -692,10 +626,6 @@ const WEBVIEW_STYLES = String.raw`
     }
 
     @media (max-width: 720px) {
-      .toolbar {
-        grid-template-columns: auto auto minmax(100px, 1fr) auto auto auto;
-      }
-
       .chapter-view,
       .list-view,
       .search-view,
@@ -715,42 +645,24 @@ const WEBVIEW_STYLES = String.raw`
 
     @media (max-width: 560px) {
       .toolbar {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        grid-template-areas:
-          "back forward address address"
-          "refresh external history history";
-      }
-
-      #back {
-        grid-area: back;
-      }
-
-      #forward {
-        grid-area: forward;
-      }
-
-      #addressGroup {
-        grid-area: address;
-      }
-
-      #refresh {
-        grid-area: refresh;
-      }
-
-      #external {
-        grid-area: external;
-      }
-
-      #historyToggle {
-        grid-area: history;
+        gap: 4px;
+        padding: 5px;
       }
 
       .toolbar .button,
       .toolbar .address {
-        width: 100%;
         min-width: 0;
-        padding-right: 6px;
-        padding-left: 6px;
+        padding-right: 5px;
+        padding-left: 5px;
+      }
+
+      .toolbar .icon-button {
+        width: 28px;
+      }
+
+      #historyToggle {
+        padding-right: 7px;
+        padding-left: 7px;
       }
 
       .search-suggestions {

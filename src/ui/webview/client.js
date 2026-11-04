@@ -9,12 +9,10 @@ const CLIENT_SCRIPT = String.raw`
     const back = document.getElementById('back');
     const forward = document.getElementById('forward');
     const refresh = document.getElementById('refresh');
-    const external = document.getElementById('external');
     const historyToggle = document.getElementById('historyToggle');
     const toast = document.getElementById('toast');
     const progressElement = document.querySelector('.loading-progress');
     const progressBar = document.querySelector('.loading-progress-bar');
-    const searchModeFilter = document.getElementById('searchModeFilter');
 
     address.type = 'text';
     address.placeholder = '输入书名或地址';
@@ -22,8 +20,6 @@ const CLIENT_SCRIPT = String.raw`
     restoreFontSize();
     syncBackButton();
     syncForwardButton();
-    syncExternalButton();
-    restoreSearchMode();
 
     address.addEventListener('focus', () => showSearchSuggestions(true));
     address.addEventListener('click', () => showSearchSuggestions(true));
@@ -37,27 +33,12 @@ const CLIENT_SCRIPT = String.raw`
         showSearchSuggestions(false);
       }
     });
-    if (searchModeFilter) {
-      searchModeFilter.addEventListener('change', () => {
-        localStorage.setItem('novelSearchMode', searchModeFilter.value);
-        if (state.mode === 'title' && state.value) {
-          vscode.postMessage({
-            command: 'search',
-            query: state.value,
-            searchMode: searchModeFilter.value,
-            replace: true
-          });
-        }
-      });
-    }
-
     toolbar.addEventListener('submit', (event) => {
       event.preventDefault();
       hideToast();
       vscode.postMessage({
         command: 'load',
-        value: address.value,
-        searchMode: searchModeFilter ? searchModeFilter.value : state.searchMode
+        value: address.value
       });
     });
 
@@ -78,10 +59,6 @@ const CLIENT_SCRIPT = String.raw`
 
     refresh.addEventListener('click', () => {
       vscode.postMessage({ command: 'refresh' });
-    });
-
-    external.addEventListener('click', () => {
-      vscode.postMessage({ command: 'openExternal', url: state.url });
     });
 
     historyToggle.addEventListener('click', () => {
@@ -184,8 +161,7 @@ const CLIENT_SCRIPT = String.raw`
         hideToast();
         vscode.postMessage({
           command: 'search',
-          query: searchTarget.getAttribute('data-search-query') || '',
-          searchMode: searchModeFilter ? searchModeFilter.value : state.searchMode
+          query: searchTarget.getAttribute('data-search-query') || ''
         });
         return;
       }
@@ -209,7 +185,7 @@ const CLIENT_SCRIPT = String.raw`
         return;
       }
 
-      if (target.classList.contains('item-link') || target.classList.contains('search-link') || target.classList.contains('search-action') || target.classList.contains('nav-button') || target.classList.contains('toc-link') || target.classList.contains('history-link') || target.classList.contains('history-page-link')) {
+      if (target.classList.contains('item-link') || target.classList.contains('search-link') || target.classList.contains('nav-button') || target.classList.contains('toc-link') || target.classList.contains('history-link') || target.classList.contains('history-page-link')) {
         event.preventDefault();
         hideToast();
         vscode.postMessage({ command: 'openItem', url });
@@ -243,21 +219,6 @@ const CLIENT_SCRIPT = String.raw`
       }
       suggestions.toggleAttribute('hidden', !open);
       suggestions.style.display = open ? 'block' : 'none';
-    }
-
-    function syncExternalButton() {
-      external.disabled = !state.url;
-    }
-
-    function restoreSearchMode() {
-      if (!searchModeFilter) {
-        return;
-      }
-      const savedMode = localStorage.getItem('novelSearchMode') || 'all';
-      const preferredMode = state.hasSearchMode ? state.searchMode : savedMode;
-      if ([...searchModeFilter.options].some((option) => option.value === preferredMode)) {
-        searchModeFilter.value = preferredMode;
-      }
     }
 
     function restoreFontSize() {

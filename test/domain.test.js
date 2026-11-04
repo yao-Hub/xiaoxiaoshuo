@@ -3,7 +3,6 @@ const test = require('node:test');
 const { getSearchTitleScore, normalizeSearchText } = require('../src/search/service');
 const { renderHomeHtml, renderPageHtml } = require('../src/ui/renderer');
 const { SEARCH_SOURCES } = require('../src/search/registry');
-const { DEFAULT_SEARCH_MODE, normalizeSearchMode } = require('../src/search/modes');
 const { HistoryStore } = require('../src/sidebar/stores/history-store');
 const { NavigationStore } = require('../src/sidebar/stores/navigation-store');
 const { isLikelyUrl, normalizeUrl, resolveUrl } = require('../src/core/url');
@@ -100,12 +99,6 @@ test('webview renderer injects isolated styles and client state', () => {
   assert.doesNotMatch(html, /\$\{safeState\}/);
 });
 
-test('search source defaults to web', () => {
-  assert.equal(DEFAULT_SEARCH_MODE, 'web');
-  assert.equal(normalizeSearchMode(undefined), 'web');
-  assert.match(renderHomeHtml({}, ''), /<option value="web"[^>]*selected>网页<\/option>/);
-});
-
 test('webview renderer shows a neutral message for unavailable content', () => {
   const html = renderPageHtml(
     {},
@@ -124,24 +117,40 @@ test('webview renderer shows a neutral message for unavailable content', () => {
   assert.match(html, /该章节需要会员，当前暂不提供正文。/);
 });
 
-test('toolbar exposes app and web search modes before the address field', () => {
+test('search results are flat and always open the catalog', () => {
   const page = {
     kind: 'search',
     query: '完美世界',
-    searchMode: 'app',
-    completedCount: 1,
-    totalSources: 1,
-    groups: []
+    items: [
+      {
+        text: '完美世界',
+        meta: '辰东',
+        chaptersUrl: 'https://example.com/book/1/',
+        url: 'https://example.com/book/1/1.html'
+      }
+    ],
+    groups: [
+      {
+        source: 'example',
+        label: '示例站点',
+        items: [
+          {
+            text: '完美世界',
+            meta: '辰东',
+            chaptersUrl: 'https://example.com/book/1/',
+            url: 'https://example.com/book/1/1.html'
+          }
+        ],
+        error: ''
+      }
+    ]
   };
   const html = renderPageHtml({}, page);
-  assert.match(html, /id="searchModeFilter"/);
-  assert.ok(html.indexOf('id="searchModeFilter"') < html.indexOf('id="address"'));
-  assert.match(html, /<option value="app"[^>]*selected>App<\/option>/);
-  assert.match(html, /<option value="web"[^>]*>网页<\/option>/);
-  assert.doesNotMatch(html, /<option value="all">/);
-
-  page.searchMode = 'web';
-  assert.match(renderPageHtml({}, page), /<option value="web"[^>]*selected>网页<\/option>/);
+  assert.doesNotMatch(html, /id="searchModeFilter"/);
+  assert.doesNotMatch(html, /class="search-group/);
+  assert.doesNotMatch(html, /class="button search-action"/);
+  assert.match(html, /class="search-results-flat"/);
+  assert.match(html, /data-open-url="https:\/\/example\.com\/book\/1\/"/);
 });
 
 test('every search source declares supported data modes', () => {

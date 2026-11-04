@@ -1,7 +1,6 @@
 const { renderClientScript } = require('./webview/client');
 const { WEBVIEW_STYLES } = require('./webview/styles');
 const { escapeAttribute, escapeHtml, escapeScriptJson } = require('../core/html');
-const { SEARCH_MODES, normalizeSearchMode } = require('../search/modes');
 
 function createNonce() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -84,14 +83,12 @@ function renderSearchLoadingHtml(
   query,
   history = [],
   backAvailable = false,
-  forwardAvailable = false,
-  searchMode = undefined
+  forwardAvailable = false
 ) {
   return renderShell(webview, {
     kind: 'loading',
     url: '',
     value: query,
-    searchMode,
     mode: 'title',
     history,
     backAvailable,
@@ -107,14 +104,12 @@ function renderSearchErrorHtml(
   message,
   history = [],
   backAvailable = false,
-  forwardAvailable = false,
-  searchMode = undefined
+  forwardAvailable = false
 ) {
   return renderShell(webview, {
     kind: 'error',
     url: '',
     value: query,
-    searchMode,
     mode: 'title',
     history,
     backAvailable,
@@ -158,7 +153,6 @@ function renderPageHtml(webview, page, history = [], searchHistory = []) {
       mode: 'title',
       title: page.title || '搜索',
       pageTitle: getPanelTitle(page),
-      searchMode: normalizeSearchMode(page.searchMode),
       backAvailable: Boolean(page.backAvailable),
       forwardAvailable: Boolean(page.forwardAvailable),
       history,
@@ -308,64 +302,30 @@ function renderSearchSuggestions(searchHistory) {
 function renderSearchBody(page) {
   const groups = Array.isArray(page.groups) ? page.groups : [];
   const failedCount = groups.filter((group) => group.error).length;
-  const totalSources = Math.max(groups.length, Number(page.totalSources) || groups.length);
-  const completedCount = Math.min(totalSources, Number(page.completedCount) || groups.length);
-  const searching = Boolean(page.searching);
-  const sections = groups
-    .map((group) => {
-      const items = Array.isArray(group.items) ? group.items.slice(0, 12) : [];
-      const rows = items
-        .map(
-          (item) => `
-          <div class="search-row">
-            <button class="search-link" type="button" data-open-url="${escapeAttribute(item.chaptersUrl || item.url)}">
-              <span class="search-title">${escapeHtml(item.text || item.url)}</span>
-              ${item.meta ? `<span class="search-meta">${escapeHtml(item.meta)}</span>` : ''}
-            </button>
-            <button class="button search-action" type="button" data-open-url="${escapeAttribute(item.url)}">${escapeHtml(item.actionText || '打开')}</button>
-          </div>`
-        )
-        .join('');
-      const content = group.searching
-        ? '<div class="search-empty searching">正在搜索<span class="searching-dots">…</span></div>'
-        : group.error
-          ? `<div class="search-empty error">${escapeHtml(group.error)}</div>`
-          : items.length
-            ? rows
-            : '<div class="search-empty">没有找到相关作品</div>';
-
-      return `
-        <section class="search-group${group.searching ? ' is-searching' : ''}">
-          <div class="search-group-head">
-            <h2>${escapeHtml(group.label)}</h2>
-            <span class="search-count">${group.searching ? '…' : items.length}</span>
-          </div>
-          ${content}
-        </section>`;
-    })
-    .join('');
-  const total = groups.reduce(
-    (sum, group) => sum + (Array.isArray(group.items) ? group.items.length : 0),
-    0
-  );
-  const progressPercent = totalSources ? Math.round((completedCount / totalSources) * 100) : 100;
-  const summary = searching
-    ? `正在搜索：已完成 ${completedCount}/${totalSources} 个网站，当前找到 ${total} 个结果。`
-    : `已搜索 ${groups.length} 个网站，共找到 ${total} 个可打开结果${failedCount ? `，${failedCount} 个网站搜索失败` : ''}。`;
-  const progress = searching
-    ? `
-      <div class="search-live-progress" role="progressbar" aria-label="搜索进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progressPercent}">
-        <div class="search-live-progress-bar" style="width: ${progressPercent}%"></div>
+  const items = Array.isArray(page.items)
+    ? page.items
+    : groups.flatMap((group) => (Array.isArray(group.items) ? group.items : []));
+  const rows = items
+    .map(
+      (item) => `
+      <div class="search-row">
+        <button class="search-link" type="button" data-open-url="${escapeAttribute(item.chaptersUrl || item.url)}">
+          <span class="search-title">${escapeHtml(item.text || item.url)}</span>
+          ${item.meta ? `<span class="search-meta">${escapeHtml(item.meta)}</span>` : ''}
+        </button>
       </div>`
-    : '';
+    )
+    .join('');
+  const summary = `共找到 ${items.length} 个结果${failedCount ? `，${failedCount} 个网站搜索失败` : ''}。`;
 
   return `
     <section class="search-view">
       <h1>“${escapeHtml(page.query || '')}” 的搜索结果</h1>
       <p class="search-summary">${summary}</p>
-      ${progress}
       ${failedCount ? '<div class="search-alert">部分网站搜索失败，可能需要科学上网工具。连接后请重新加载 VS Code 窗口再试。</div>' : ''}
-      ${sections}
+      <div class="search-results-flat">
+        ${rows || '<div class="search-empty">没有找到相关作品</div>'}
+      </div>
     </section>`;
 }
 
@@ -474,14 +434,6 @@ function renderChapterNavigation(page, position) {
 function renderShell(webview, page) {
   const nonce = createNonce();
   const searchHistory = Array.isArray(page.searchHistory) ? page.searchHistory : [];
-  const hasExplicitSearchMode = page.searchMode !== undefined;
-  const selectedSearchMode = normalizeSearchMode(page.searchMode);
-  const searchModeFilter = `<select class="search-mode-filter" id="searchModeFilter" aria-label="选择搜索来源">
-    ${SEARCH_MODES.map(
-      (mode) =>
-        `<option value="${escapeAttribute(mode.key)}" ${mode.key === selectedSearchMode ? 'selected' : ''}>${escapeHtml(mode.label)}</option>`
-    ).join('')}
-  </select>`;
   const safeState = escapeScriptJson({
     kind: page.kind,
     url: page.url,
@@ -491,8 +443,6 @@ function renderShell(webview, page) {
       page.url || page.mode === 'title' || page.kind === 'search' || page.kind === 'history'
     ),
     title: page.title,
-    searchMode: selectedSearchMode,
-    hasSearchMode: hasExplicitSearchMode,
     canGoBack: Boolean(page.backAvailable),
     canGoForward: Boolean(page.forwardAvailable)
   });
@@ -532,7 +482,6 @@ function renderShell(webview, page) {
         </svg>
       </button>
       <div class="address-group" id="addressGroup">
-        ${searchModeFilter}
         <input class="address" id="address" type="url" aria-label="地址" spellcheck="false">
       </div>
       <button class="button icon-button" id="refresh" type="button" title="刷新当前页面" aria-label="刷新当前页面" ${refreshDisabled}>
@@ -541,7 +490,6 @@ function renderShell(webview, page) {
           <path d="M21 3v6h-6"></path>
         </svg>
       </button>
-      <button class="button" id="external" type="button" title="在浏览器打开">打开</button>
       <button class="button" id="historyToggle" type="button" title="历史记录" aria-expanded="false">历史</button>
     </form>
     ${renderSearchSuggestions(searchHistory)}

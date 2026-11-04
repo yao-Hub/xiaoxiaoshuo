@@ -1,7 +1,6 @@
 const vscode = require('vscode');
 const { isLikelyUrl, normalizeUrl } = require('../core/url');
 const { searchBooks } = require('../search/service');
-const { DEFAULT_SEARCH_MODE, normalizeSearchMode } = require('../search/modes');
 const { HistoryStore } = require('./stores/history-store');
 const { NavigationStore } = require('./stores/navigation-store');
 const { PageCache } = require('./stores/page-cache');
@@ -33,7 +32,6 @@ class NovelReaderSidebarProvider {
     this.currentMode = 'url';
     this.currentQuery = '';
     this.searchInputQuery = '';
-    this.searchMode = DEFAULT_SEARCH_MODE;
     this.view = undefined;
   }
 
@@ -102,15 +100,13 @@ class NovelReaderSidebarProvider {
           }
           await this.openUrl(normalized.url);
         } else {
-          await this.search(value, true, { mode: message.searchMode });
+          await this.search(value, true);
         }
         return;
       }
 
       if (message.command === 'search') {
-        await this.search(message.query, !message.replace, {
-          mode: message.searchMode
-        });
+        await this.search(message.query, !message.replace);
         return;
       }
 
@@ -169,19 +165,12 @@ class NovelReaderSidebarProvider {
         await this.openUrl(normalized.url, { preserveSearchInput: true });
         return;
       }
-
-      if (message.command === 'openExternal') {
-        const normalized = normalizeUrl(message.url || this.currentUrl);
-        if (normalized.ok) {
-          await vscode.env.openExternal(vscode.Uri.parse(normalized.url));
-        }
-      }
     });
 
     if (this.currentMode === 'history') {
       this.showHistory();
     } else if (this.currentMode === 'title' && this.currentQuery) {
-      this.search(this.currentQuery, true, { mode: this.searchMode });
+      this.search(this.currentQuery, true);
     } else if (this.currentUrl) {
       this.loadPage(this.currentUrl);
     }
@@ -222,7 +211,7 @@ class NovelReaderSidebarProvider {
       return;
     }
 
-    await this.search(input, true, { mode: this.searchMode });
+    await this.search(input, true);
   }
 
   async openUrl(url, options = {}) {
@@ -244,14 +233,11 @@ class NovelReaderSidebarProvider {
     }
   }
 
-  async search(query, pushCurrent = true, options = {}) {
+  async search(query, pushCurrent = true) {
     const value = String(query || '').trim();
     if (!value) {
       return;
     }
-    const searchMode = normalizeSearchMode(options.mode || this.searchMode);
-    this.searchMode = searchMode;
-
     if (pushCurrent) {
       this.pushCurrentPage();
     }
@@ -271,29 +257,14 @@ class NovelReaderSidebarProvider {
       value,
       this.history,
       this.navigationStack.length > 0,
-      this.forwardStack.length > 0,
-      searchMode
+      this.forwardStack.length > 0
     );
     const reportProgress = this.createProgressReporter(sequence);
 
     try {
       const page = await searchBooks(value, {
-        mode: searchMode,
         signal: requestController.signal,
-        onProgress: reportProgress,
-        onPartial: (partialPage) => {
-          if (sequence !== this.loadSequence || requestController.signal.aborted || !this.view) {
-            return;
-          }
-
-          this.currentPage = partialPage;
-          this.view.webview.html = renderPageHtml(
-            this.view.webview,
-            this.withNavigation(partialPage),
-            this.history,
-            this.searchHistory
-          );
-        }
+        onProgress: reportProgress
       });
       reportProgress({ fraction: 0.99, label: '正在生成搜索结果' });
       if (sequence !== this.loadSequence || !this.view) {
@@ -316,8 +287,7 @@ class NovelReaderSidebarProvider {
         error instanceof Error ? error.message : String(error),
         this.history,
         this.navigationStack.length > 0,
-        this.forwardStack.length > 0,
-        searchMode
+        this.forwardStack.length > 0
       );
     } finally {
       this.finishRequest(requestController);
@@ -389,11 +359,6 @@ class NovelReaderSidebarProvider {
       return;
     }
 
-    if (page.kind === 'search' && page.searching) {
-      await this.search(page.query || '', false, { mode: page.searchMode });
-      return;
-    }
-
     this.view.webview.html = renderPageHtml(
       this.view.webview,
       this.withNavigation(page),
@@ -441,7 +406,7 @@ class NovelReaderSidebarProvider {
     }
 
     if (this.currentMode === 'title' && this.currentQuery) {
-      await this.search(this.currentQuery, false, { mode: this.searchMode });
+      await this.search(this.currentQuery, false);
       return;
     }
 
